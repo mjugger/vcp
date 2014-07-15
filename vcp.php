@@ -1,6 +1,6 @@
 <?php
 	 /*
-   Plugin Name: Awesomeness Creator
+   Plugin Name: video custom post
    Plugin URI: http://my-awesomeness-emporium.com
    Description: a plugin to create awesomeness and spread joy
    Version: 1.2
