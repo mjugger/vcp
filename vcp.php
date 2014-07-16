@@ -9,11 +9,20 @@
    License: ???
    */
   
+  require_once('helper_classes/wp_search_users.php');
+  
    function depended_scripts(){
-   		wp_enqueue_script( 'ajax_user_search', plugins_url() . '/js/ajax_user_search.js', array( 'jquery' ), '20120206', true );
+
+   		wp_register_script( 'ajax_user_search', plugins_url() . '/vcp/js/ajax_user_search.js', array( 'jquery' ), '20120206', true );
+   		wp_localize_script( 'ajax_user_search', 'myAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' )));
+
+   		wp_enqueue_script('ajax_user_search');
+   		
    }
 
-   add_action( 'wp_enqueue_scripts', 'depended_scripts' );
+   add_action( 'init', 'depended_scripts' );
+   add_action("wp_ajax_search_users", "search_users");
+   
 
    //video post type.
 	add_action('init', 'video_post',2);
@@ -46,7 +55,7 @@
 	add_action( 'add_meta_boxes', 'add_events_metaboxes' );
 	
 	function add_events_metaboxes(){
-		add_meta_box('testbox', 'Team Hits (Note: do not drag to right hand side.)', 'video_distributor', 'video post', 'normal', 'high');
+		add_meta_box('testbox', 'distributor', 'video_distributor', 'video post', 'normal', 'high');
 	}
 
 	function video_distributor($post){
@@ -72,7 +81,7 @@
 			
 		}*/
 		//wp_reset_postdata();
-		echo '<p>hey there</p>';
+		echo '<input type="text" id="search_users_input_field" name="user"/><button type="button" id="search_users">Check if valid</button>';
 	}
 	
 	add_action( 'save_post', 'video_distributor_save',10,1);
