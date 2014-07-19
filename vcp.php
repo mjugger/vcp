@@ -12,10 +12,10 @@
   require_once('helper_classes/wp_search_users.php');
   
    function depended_scripts(){
-
+   		wp_register_style('vcp.css',plugins_url() .'/vcp/css/vcp.css');
    		wp_register_script( 'ajax_user_search', plugins_url() . '/vcp/js/ajax_user_search.js', array( 'jquery' ), '20120206', true );
    		wp_localize_script( 'ajax_user_search', 'myAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' )));
-
+   		wp_enqueue_style('vcp.css');
    		wp_enqueue_script('ajax_user_search');
    		
    }
@@ -25,9 +25,9 @@
    
 
    //video post type.
-	add_action('init', 'video_post',2);
+	add_action('init', 'video_custom_post',2);
 
-	     function video_post() {
+	     function video_custom_post() {
 	       $feature_args2 = array(
 	          'labels' => array(
 	           'name' => __( 'video posts' ),
@@ -46,48 +46,65 @@
 	       'capability_type' => 'page',
 	       'hierarchical' => false,
 	       'rewrite' => true,
-	       'menu_position' => 20,
+	       'menu_position' => 5,
 	       'supports' => array('title', 'editor', 'thumbnail','excerpt','page-attributes')
 	     );
-	  register_post_type('video post',$feature_args2);
+	  register_post_type('video_post',$feature_args2);
+	}
+
+	function my_taxonomies_video_post() {
+	  $labels = array(
+	    'name'              => _x( 'video post Categories', 'taxonomy general name' ),
+	    'singular_name'     => _x( 'video post Category', 'taxonomy singular name' ),
+	    'search_items'      => __( 'Search video post Categories' ),
+	    'all_items'         => __( 'All video post Categories' ),
+	    'parent_item'       => __( 'Parent video post Category' ),
+	    'parent_item_colon' => __( 'Parent video post Category:' ),
+	    'edit_item'         => __( 'Edit video post Category' ), 
+	    'update_item'       => __( 'Update video post Category' ),
+	    'add_new_item'      => __( 'Add New video post Category' ),
+	    'new_item_name'     => __( 'New video post Category' ),
+	    'menu_name'         => __( 'video post Categories' ),
+	  );
+	  $args = array(
+	    'labels' => $labels,
+	    'hierarchical' => true,
+	  );
+	  register_taxonomy( 'video_post_category', 'video_post', $args );
+	}
+	add_action( 'init', 'my_taxonomies_video_post', 0 );
+
+	
+	
+	function add_events_metaboxes(){
+		add_meta_box('distributorBox', 'distributor |assignd by admin|', 'video_distributor', 'video_post', 'normal', 'high');
 	}
 
 	add_action( 'add_meta_boxes', 'add_events_metaboxes' );
-	
-	function add_events_metaboxes(){
-		add_meta_box('testbox', 'distributor', 'video_distributor', 'video post', 'normal', 'high');
-	}
 
 	function video_distributor($post){
 		
-		/*$bio_post = new WP_Query( array( 'post_type' => 'bio','posts_per_page'=>-1) );
-		$t = get_the_title();
-		//$values = get_post_custom( $post->ID);
-		$check_the_boxes = maybe_unserialize( get_post_meta($post->ID, "team", true) );
-		
-		
-		while( $bio_post->have_posts() ){
-			
-			$bio_post->the_post();
+		echo '<div id="distributor_info">'.get_video_distributor($post->ID).'</div>';
+		if(current_user_can('manage_options')){
+			echo '<button type="button" id="show_user_search_model">search users</button>
+ 		<button type="button" id="remove_user_markup">remove</button>
+ 		<input type="hidden" id="distributor_info_save" name="distributor_info_save"/>';
+		}
+	}
 
-			if($t == get_the_title() ){
-				continue;
-			}
-			
-			$image_url = wp_get_attachment_image_src( get_post_thumbnail_id( $bio_post->ID ), 'single-post-thumbnail' );
-			$check = in_array(''.get_the_title().'+'.$image_url[0].'+'.get_permalink().'', (array) $check_the_boxes) ? 'checked="checked"' : '';
-			
-			echo '<input type="checkbox" name="team[]" value="'.get_the_title().'+'.$image_url[0].'+'.get_permalink().'"  '.$check.' /> '.get_the_title().'<br>';
-			
-		}*/
-		//wp_reset_postdata();
-		echo '<input type="text" id="search_users_input_field" name="user"/><button type="button" id="search_users">Check if valid</button>';
+	function get_video_distributor($post_id){
+		$distributor_info = get_post_meta($post_id,'distributor_info',true);
+		if($distributor_info != ''){
+			$distributor_info = json_decode($distributor_info);
+			return '<p>user name: '.$distributor_info->data->display_name.' | user email: '.$distributor_info->data->user_email.'</p>';
+		}
+		return '';
 	}
 	
-	add_action( 'save_post', 'video_distributor_save',10,1);
+	add_action( 'save_post', 'save_video_distributor',10,1);
 
 	//save the meta box
-	function video_distributor_save($post_id){   
+	function save_video_distributor($post_id){   
 		
 		//$check_the_boxes2 = maybe_unserialize( get_post_meta($post->ID, "team", true) );
 		
@@ -96,12 +113,12 @@
     		 return;
     	}
     	
-    	 if ( isset($_POST['team']) ) { // if we get new data
+    	 if ( isset($_POST['distributor_info_save'] ) && $_POST['distributor_info_save'] != 'remove' ) { // if we get new data
 
-        	update_post_meta($post_id, "team", $_POST['team'] );
+        	update_post_meta($post_id, "distributor_info", $_POST['distributor_info_save'] );
 			
-   		}else{
-   			update_post_meta($post_id, "team", "" );
+   		}else if($_POST['distributor_info_save'] == 'remove'){
+   			update_post_meta($post_id, "distributor_info", "" );
    		}
     	
 	}
