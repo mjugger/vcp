@@ -76,11 +76,11 @@
 
 	
 	
-	function add_events_metaboxes(){
+	function vcp_add_events_metaboxes(){
 		add_meta_box('distributorBox', 'distributor |assignd by admin|', 'video_distributor', 'video_post', 'normal', 'high');
 	}
 
-	add_action( 'add_meta_boxes', 'add_events_metaboxes' );
+	add_action( 'add_meta_boxes', 'vcp_add_events_metaboxes' );
 
 	function video_distributor($post){
 		
