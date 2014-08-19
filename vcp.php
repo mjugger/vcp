@@ -75,7 +75,6 @@
 	add_action( 'init', 'my_taxonomies_video_post', 0 );
 
 	
-	
 	function vcp_add_events_metaboxes(){
 		add_meta_box('distributorBox', 'distributor |assignd by admin|', 'video_distributor', 'video_post', 'normal', 'high');
 	}
